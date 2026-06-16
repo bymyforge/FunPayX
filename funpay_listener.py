@@ -1,0 +1,20 @@
+from fpx import FunPayTools, Message, Dependency
+from aiogram import Bot
+import logging
+
+from config import GKEY
+from fpworker.routers.message import router as msg_router
+
+
+async def funpaymain():
+    async with FunPayTools(gkey=GKEY) as fp:
+        from fpworker.di_list import get_db
+        from core.logic.chat import ChatLogic
+
+        @fp.router.on_startup()
+        async def answer_for_start():
+            logging.info('Слушатель funpay запущен')
+
+        fp.router.include_router(msg_router)
+
+        await fp.runner.start_polling(1, is_background=False)
