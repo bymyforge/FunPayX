@@ -41,8 +41,8 @@ def _paginate_blacklist(
 ) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     total_pages = max(1, (len(blacklist) + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE)
-    start = page * ITEMS_PER_PAGE
-    end = start + ITEMS_PER_PAGE
+    start = int(page * ITEMS_PER_PAGE)
+    end = int(start + ITEMS_PER_PAGE)
     page_items = blacklist[start:end]
     if not page_items:
         builder.row(
@@ -52,11 +52,11 @@ def _paginate_blacklist(
             )
         )
     else:
-        for user_id in page_items:
+        for user_name in page_items:
             builder.row(
                 InlineKeyboardButton(
-                    text=f"❌ {user_id}",
-                    callback_data=f"blacklist:remove:{user_id}",
+                    text=f"❌ {user_name}",
+                    callback_data=f"blacklist:rm:{user_name}:{page}",
                 )
             )
     if total_pages > 1:
@@ -82,8 +82,6 @@ def _paginate_blacklist(
                 )
             )
         builder.row(*nav_buttons)
-
-    # Кнопка добавления пользователя
     builder.row(
         InlineKeyboardButton(
             text="➕ Добавить в ЧС",
