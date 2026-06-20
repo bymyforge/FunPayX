@@ -46,3 +46,15 @@ class Settings:
     async def meeting_text(text):
         config_manager.welcome_msg['message'] = text
         await config_manager.update_config()
+    
+    @staticmethod
+    async def create_command(command, message):
+        config_manager.auto_answer.append(
+            {
+                'command': command,
+                'enabled': True,
+                'pind_user': False,
+                'message': message                
+            }
+        )
+        await config_manager.update_config()

@@ -28,11 +28,6 @@ class FunPayController:
                         db.add(new_cd)
                         await db.commit()
                         return True
-        if config_manager.auto_answer:
-            for trigger, answer in config_manager.auto_answer.items():
-                if message.text.startswith(trigger):
-                    await message.answer(answer)
-                    return True
         return True
 
     @staticmethod

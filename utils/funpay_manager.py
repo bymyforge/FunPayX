@@ -4,8 +4,8 @@ class FunPayManager:
     _instance: FunPayTools | None = None
 
     @classmethod
-    def init(cls, gkey: str):
-        cls._instance = FunPayTools(gkey=gkey)
+    def init(cls, gkey: str, gseal: str):
+        cls._instance = FunPayTools(gkey=gkey, gseal=gseal)
 
     @classmethod
     def get(cls) -> Bot:

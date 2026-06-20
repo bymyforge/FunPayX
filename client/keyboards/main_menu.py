@@ -22,6 +22,12 @@ def main_menu_kb() -> InlineKeyboardMarkup:
             callback_data="meeting:set",
         )
     )
+    builder.row(
+        InlineKeyboardButton(
+            text='Авто ответ (управление командами)',
+            callback_data='command:page:0'
+        )
+    )
     return builder.as_markup()
 
 def back_to_main_menu() -> InlineKeyboardMarkup:

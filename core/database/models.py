@@ -19,7 +19,7 @@ class BaseConfig(Base):
     accept_order_answer: Mapped[str] = mapped_column(String(255), nullable=True)
     review_answer: Mapped[dict] = mapped_column(JSON, nullable=True)
     auto_issue: Mapped[dict] = mapped_column(JSON, nullable=True)
-    auto_answer: Mapped[dict] = mapped_column(JSON, nullable=True)
+    auto_answer: Mapped[list] = mapped_column(JSON, nullable=True)
     
 class User(Base):
     __tablename__ = 'users'

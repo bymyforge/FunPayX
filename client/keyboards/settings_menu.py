@@ -154,3 +154,102 @@ def set_meeting() -> InlineKeyboardMarkup:
         )
     )
     return builder.as_markup()
+
+def _check_command(enabled):
+    return "✅" if enabled else "❌"
+
+def paginate_commands(
+    command_list: list[dict],
+    page: int,
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    total_pages = max(1, (len(command_list) + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE)
+    start = int(page * ITEMS_PER_PAGE)
+    end = int(start + ITEMS_PER_PAGE)
+    page_items = command_list[start:end]
+    if not page_items:
+        builder.row(
+            InlineKeyboardButton(
+                text="Список пуст",
+                callback_data="command:nop",
+            )
+        )
+    else:
+        for answ in page_items:
+            builder.row(
+                InlineKeyboardButton(
+                    text=f"{_check_command(answ['enabled'])} {answ['command']}",
+                    callback_data=f"command:edit:{answ['command']}",
+                )
+            )
+    if total_pages > 1:
+        nav_buttons = []
+        if page > 0:
+            nav_buttons.append(
+                InlineKeyboardButton(
+                    text="⬅️ Назад",
+                    callback_data=f"command:page:{page - 1}",
+                )
+            )
+        nav_buttons.append(
+            InlineKeyboardButton(
+                text=f"{page + 1}/{total_pages}",
+                callback_data="command:nop",
+            )
+        )
+        if page < total_pages - 1:
+            nav_buttons.append(
+                InlineKeyboardButton(
+                    text="➡️ Вперёд",
+                    callback_data=f"command:page:{page + 1}",
+                )
+            )
+        builder.row(*nav_buttons)
+    builder.row(
+        InlineKeyboardButton(
+            text="➕ Добавить команду",
+            callback_data=f"command:new:{page}",
+        )
+    )
+    builder.row(
+        InlineKeyboardButton(
+            text="← Меню",
+            callback_data="main_menu",
+        )
+    )
+    return builder.as_markup()
+
+def command_settings_kb(data: dict) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(
+            text="✏️ Редактировать сообщение",
+            callback_data=f"command:edit:msg:{data['command']}"
+        )
+    )
+    builder.row(
+        InlineKeyboardButton(
+            text=f"📢 Уведомлять в Telegram: {_status_icon(data.get('notify', False))}",
+            callback_data=f"command:toggle:notify:{data['command']}"
+        )
+    )
+    builder.row(
+        InlineKeyboardButton(
+            text="📝 Редактировать команду",
+            callback_data=f"command:edit:com:{data['command']}"
+        )
+    )
+    builder.row(
+        InlineKeyboardButton(
+            text=f"▶️ Запущено: {_status_icon(data.get('enabled', False))}",
+            callback_data=f"command:toggle:enabled:{data['command']}"
+        )
+    )
+    builder.row(
+        InlineKeyboardButton(
+            text="← Назад",
+            callback_data=f"command:page:0"
+        )
+    )
+    
+    return builder.as_markup()

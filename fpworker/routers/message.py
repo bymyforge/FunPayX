@@ -20,3 +20,4 @@ async def get_base_msg(message: Message, db: AsyncSession = Dependency(get_db)):
         parse_mode='HTML',
         reply_markup=message_kb(message.chat_id)
     )
+

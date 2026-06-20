@@ -23,7 +23,14 @@ class ConfigManager:
         self.review_answer: dict = None
         self.blacklist_buyers: list = []
         self.auto_issue: dict = None
-        self.auto_answer: dict = None
+        self.auto_answer: list[dict] = [
+            {
+                'command': '!start',
+                'enabled': False,
+                'ping_user': True,
+                'message': 'Привет! Я позвал продавца'
+            },
+        ]
     
     async def load_config(self):
         '''Загрузка конфига в память при старте'''
@@ -73,5 +80,10 @@ class ConfigManager:
             config.auto_answer=self.auto_answer
             config.auto_issue=self.auto_issue
         await db.commit()
+
+    def find_command(self, command_name):
+        for command in self.auto_answer:
+            if command['command'] == command_name:
+                return command
 
 config_manager = ConfigManager()

@@ -2,7 +2,7 @@ from aiogram import F, types, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
-from client.keyboards.settings_menu import settings_menu, _paginate_blacklist, set_meeting
+from client.keyboards.settings_menu import settings_menu, _paginate_blacklist, set_meeting, command_settings_kb, paginate_commands
 from core.logic.settings import Settings
 from utils.config_manager import config_manager
 from client.keyboards.main_menu import back_to_main_menu
@@ -17,6 +17,10 @@ class ChangeWelcomeCooldownProcessing(StatesGroup):
     waiting_hours = State()
 
 class ChangeWelcomeMessageProcessing(StatesGroup):
+    waiting_text = State()
+
+class NewCommand(StatesGroup):
+    waiting_name = State()
     waiting_text = State()
 
 @router.callback_query(F.data == 'settings_menu')
@@ -122,3 +126,45 @@ async def meeting_change_msg(message: types.Message, state: FSMContext, db):
         parse_mode='markdown',
         reply_markup=set_meeting()
     )
+
+@router.callback_query(F.data.startswith('command:page:'))
+async def command_settings(callback: types.CallbackQuery):
+    page = callback.data.split(':')[-1]
+    await callback.message.edit_text('Меню создания простых команд автоответа\n✅ - команда запущена', reply_markup=paginate_commands(config_manager.auto_answer, page))
+
+@router.callback_query(F.data.startswith('command:new:'))
+async def new_command(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.edit_text('Введите название команды, префикс не важен. (хоть !start хоть /help)')
+    await state.set_state(NewCommand.waiting_name)
+
+@router.message(NewCommand.waiting_name)
+async def new_command_nick(message: types.Message, state: FSMContext):
+    command = message.text
+    await state.update_data(command=command)
+    await message.answer(
+            text=(
+                'Введите текст, которым будет отвечать команда.'
+                'Вы можете использовать форматирование:\n`{sender}` - **Имя отправителя сообщения**\n'
+                '`{chat_id}` - **ID чата, из которого было отправлено сообщение**\n'
+                '`{text}` - **Текст сообщения, на которое вы отвечаете**'
+            ),
+            parse_mode='markdown'
+        )
+    await state.set_state(NewCommand.waiting_text)
+
+@router.message(NewCommand.waiting_text)
+async def new_command_text(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+    command, message = data.get('command'), message.text
+    settings = Settings()
+    await settings.create_command(command, message)
+    await message.answer(
+        text=f'Настройки команды {command}\nСообщение: `{message}`',
+        parse_mode='markdown',
+        reply_markup=command_settings_kb(config_manager.find_command(command)))
+
+@router.callback_query(F.data.startswith('comand:edit:'))
+async def edit_command(callback: types.CallbackQuery):
+    command_name = callback.data.split(':')[-1]
+    command = config_manager.find_command(command_name)
+    await message.answer(text=f'Настройки команды {command['command']}\n')
