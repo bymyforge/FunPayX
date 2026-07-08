@@ -1,4 +1,4 @@
-from fpx import Router, Message, Dependency
+from fpx import Router, types, Dependency
 from sqlalchemy.ext.asyncio import AsyncSession
 from html import escape
 
@@ -10,7 +10,7 @@ from fpworker.controller import controller
 router = Router()
 
 @router.on_message(custom=controller.MessageManager)
-async def get_base_msg(message: Message, db: AsyncSession = Dependency(get_db)):
+async def get_base_msg(message: types.Message, db: AsyncSession = Dependency(get_db)):
     chat = ChatLogic(db)
     await chat.message_all_users(
         text=(

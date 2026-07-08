@@ -1,4 +1,4 @@
-from fpx import FunPayTools, Message, Dependency
+from fpx import FunPayTools
 from aiogram import Bot
 import logging
 import asyncio

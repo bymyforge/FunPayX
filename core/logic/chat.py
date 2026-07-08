@@ -1,5 +1,6 @@
 from aiogram import Bot
 import logging
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database.engine import Session
 from core.logic.repo.chat_repo import ChatRepo
@@ -7,7 +8,7 @@ from utils.bot_manager import BotManager
 
 
 class ChatLogic:
-    def __init__(self, db):
+    def __init__(self, db: AsyncSession):
         self.db = db
         self.bot: Bot = BotManager.get()
         self.repo = ChatRepo(db)

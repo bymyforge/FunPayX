@@ -229,7 +229,7 @@ def command_settings_kb(data: dict) -> InlineKeyboardMarkup:
     )
     builder.row(
         InlineKeyboardButton(
-            text=f"📢 Уведомлять в Telegram: {_status_icon(data.get('notify', False))}",
+            text=f"📢 Уведомлять в Telegram: {_status_icon(data.get('ping_user', False))}",
             callback_data=f"command:toggle:notify:{data['command']}"
         )
     )
@@ -243,6 +243,12 @@ def command_settings_kb(data: dict) -> InlineKeyboardMarkup:
         InlineKeyboardButton(
             text=f"▶️ Запущено: {_status_icon(data.get('enabled', False))}",
             callback_data=f"command:toggle:enabled:{data['command']}"
+        )
+    )
+    builder.row(
+        InlineKeyboardButton(
+            text=f"Удалить",
+            callback_data=f"command:delete:{data['command']}"
         )
     )
     builder.row(

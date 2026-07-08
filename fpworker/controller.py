@@ -1,15 +1,16 @@
-from fpx import Message, Order, CurReview
+from fpx import types
 from sqlalchemy import select
 from datetime import timedelta, datetime
 
 from utils.config_manager import config_manager
 from core.database.engine import Session
+from core.logic.chat import ChatLogic
 from core.database.models import MeetingCooldowns
 
 
 class FunPayController:
     @staticmethod
-    async def MessageManager(message: Message) -> bool:
+    async def MessageManager(message: types.Message) -> bool:
         '''Фильтр обработки сообщений'''
         if not config_manager.new_message_notifications:
             return False
@@ -28,10 +29,22 @@ class FunPayController:
                         db.add(new_cd)
                         await db.commit()
                         return True
+        cmd = config_manager.find_command(message.text)
+        if cmd:
+            if cmd['enabled']:
+                if cmd['ping_user']:
+                    async with Session() as db:
+                        chat = ChatLogic(db)
+                        await chat.message_all_users(
+                            text=(
+                                f'Вызвана команда {cmd['command']}\n'
+                            )
+                        )
+                await message.answer(cmd['message'])
         return True
 
     @staticmethod
-    async def NewOrderManager(order: Order) -> bool:
+    async def NewOrderManager(order: types.Order) -> bool:
         if not config_manager.new_order_notifications:
             return False
         if config_manager.auto_issue:
@@ -42,13 +55,13 @@ class FunPayController:
         return True
 
     @staticmethod
-    async def ClosedOrderManager(order: Order) -> bool:
+    async def ClosedOrderManager(order: types.Order) -> bool:
         if not config_manager.closed_order_notifications:
             return False
         return True
 
     @staticmethod
-    async def NewReviewManager(review: CurReview) -> bool:
+    async def NewReviewManager(review: types.CurReview) -> bool:
         if not config_manager.new_review_notifications:
             return False
         if config_manager.review_answer:

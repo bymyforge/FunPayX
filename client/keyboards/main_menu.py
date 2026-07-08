@@ -24,7 +24,7 @@ def main_menu_kb() -> InlineKeyboardMarkup:
     )
     builder.row(
         InlineKeyboardButton(
-            text='Авто ответ (управление командами)',
+            text='🤖 Управление командами',
             callback_data='command:page:0'
         )
     )

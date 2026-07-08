@@ -1,4 +1,4 @@
-from fpx import Router, CurReview, Dependency
+from fpx import Router, types, Dependency
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fpworker.di_list import get_db
@@ -9,7 +9,7 @@ from client.keyboards.event_menu import get_order_keyboard
 router = Router()
 
 @router.on_new_review()
-async def handle_new_review(review: CurReview, db: AsyncSession = Dependency(get_db)):
+async def handle_new_review(review: types.CurReview, db: AsyncSession = Dependency(get_db)):
     if await controller.NewReviewManager(review) is True:
         chat = ChatLogic(db)
         await chat.message_all_users(

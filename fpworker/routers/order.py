@@ -1,4 +1,4 @@
-from fpx import Router, Order, Dependency
+from fpx import Router, types, Dependency
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fpworker.di_list import get_db
@@ -10,10 +10,8 @@ from client.keyboards.event_menu import get_order_keyboard
 router = Router()
 
 @router.on_new_order()
-async def handle_new_order(order: Order, db: AsyncSession = Dependency(get_db)):
-    print('Дошло')
+async def handle_new_order(order: types.Order, db: AsyncSession = Dependency(get_db)):
     if await controller.NewOrderManager(order) is True:
-        print('Прошло')
         chat = ChatLogic(db)
         await chat.message_all_users(
             text=(
@@ -27,10 +25,8 @@ async def handle_new_order(order: Order, db: AsyncSession = Dependency(get_db)):
         )
 
 @router.on_confirmed_orders()
-async def handle_closed_order(order: Order, db: AsyncSession = Dependency(get_db)):
-    print('Дошло')
+async def handle_closed_order(order: types.Order, db: AsyncSession = Dependency(get_db)):
     if await controller.ClosedOrderManager(order) is True:
-        print('Прошло')
         chat = ChatLogic(db)
         await chat.message_all_users(
             text=f'🌕 Пользователь <a href="https://funpay.com/users/{order.chat_id}/">{order.client_name}</a> подтвердил выполнение заказа <code>{order.order_id}</code>. (<code>{order.price} ₽</code>)',

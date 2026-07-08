@@ -183,13 +183,14 @@ async def edit_command(callback: types.CallbackQuery):
 async def command_set(callback: types.CallbackQuery, state: FSMContext):
     command = callback.data.split(':')[-1]
     action = callback.data.split(':')[-2]
+    await state.update_data(command=command)
     if action == 'msg':
-        await message.answer('Введите новое сообщение')
+        await callback.message.answer('Введите новое сообщение')
         await state.set_state(EditCommandMessage.waiting_message)
     elif action == 'cmd':
-        await message.answer('Введите новое название команды')
+        await callback.message.answer('Введите новое название команды')
         await state.set_state(EditCommandName.waiting_command)
-    await state.update_data(command=command)
+    await callback.answer()
 
 @router.message(EditCommandMessage.waiting_message)
 async def edit_command_message(message: types.Message, state: FSMContext):
@@ -203,14 +204,33 @@ async def edit_command_message(message: types.Message, state: FSMContext):
         parse_mode='markdown',
         reply_markup=command_settings_kb(config_manager.find_command(command)))
 
-@router.message(EditCommandMessage.waiting_message)
+@router.message(EditCommandName.waiting_command)
 async def edit_command_name(message: types.Message, state: FSMContext):
     data = await state.get_data()
     command = data.get('command')
     new_command = message.text
     settings = Settings()
     await settings.change_cmd_name(command, new_command)
+    config_manager.find_command(new_command)
     await message.answer(
-        text=f'Настройки команды {new_command}\nСообщение: `{config_manager.auto_answer['command']['message']}`',
+        text=f'Настройки команды {new_command}\nСообщение: `{config_manager.find_command(new_command)['message']}`',
+        parse_mode='markdown',
+        reply_markup=command_settings_kb(config_manager.find_command(new_command)))
+
+@router.callback_query(F.data.startswith('command:toggle:'))
+async def toggle_command_options(callback: types.CallbackQuery):
+    command = callback.data.split(':')[-1]
+    option = callback.data.split(':')[-2]
+    settings = Settings()
+    await settings.toggle_command(command, option)
+    await callback.message.edit_text(
+        text=f'Настройки команды {command}\nСообщение: `{config_manager.find_command(command)['message']}`',
         parse_mode='markdown',
         reply_markup=command_settings_kb(config_manager.find_command(command)))
+    
+@router.callback_query(F.data.startswith('command:delete:'))
+async def delete_command(callback: types.CallbackQuery):
+    command = callback.data.split(':')[-1]
+    settings = Settings()
+    await settings.delete_command(command)
+    await callback.message.edit_text('Меню создания простых команд автоответа\n✅ - команда запущена', reply_markup=paginate_commands(config_manager.auto_answer, 0))

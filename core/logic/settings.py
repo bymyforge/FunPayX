@@ -53,7 +53,7 @@ class Settings:
             {
                 'command': command,
                 'enabled': True,
-                'pind_user': False,
+                'ping_user': False,
                 'message': message                
             }
         )
@@ -61,12 +61,29 @@ class Settings:
 
     @staticmethod
     async def change_cmd_message(command, new_message):
-        command = config_manager.auto_answer['command']
+        command = config_manager.find_command(command)
         command['message'] = new_message
         await config_manager.update_config()
 
     @staticmethod
     async def change_cmd_name(command, new_name):
-        command = config_manager.auto_answer['command']
+        command = config_manager.find_command(command)
         command['command'] = new_name
+        await config_manager.update_config()
+    
+    @staticmethod
+    async def toggle_command(command, option):
+        cmd = config_manager.find_command(command)
+        if option == 'enabled':
+            cmd['enabled'] = not cmd['enabled']
+        elif option == 'notify':
+            cmd['ping_user'] = not cmd['ping_user']
+        await config_manager.update_config()
+
+    @staticmethod
+    async def delete_command(command):
+        config_manager.auto_answer = [
+        cmd for cmd in config_manager.auto_answer 
+        if cmd['command'] != command
+        ]
         await config_manager.update_config()
