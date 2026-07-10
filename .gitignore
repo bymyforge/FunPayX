@@ -1,0 +1,11 @@
+/.env
+/.venv
+/__pycache__
+/config.db
+/.pyc
+/funpayx/.env
+/funpayx/__pycache__
+/funpayx/pyc
+__pycache__
+pyc
+plugins
