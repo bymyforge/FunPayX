@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
 from core.logic.user import UserLogic
-from client.keyboards.main_menu import main_menu_kb
+from client.keyboards.main_menu import main_menu_kb, plugin_menu
 
 router = Router()
 
@@ -32,3 +32,8 @@ async def main_menu(callback: types.CallbackQuery, state: FSMContext, db):
         return await callback.message.edit_text('Добро пожаловать', reply_markup=main_menu_kb())
     await callback.message.edit_text('Введи свой пароль')
     await state.set_state(Auth.waiting_password)
+
+@router.callback_query(F.data == 'plugins')
+async def handle_plugin_menu(callback: types.CallbackQuery):
+    await callback.message.edit_text(f'Меню плагинов', reply_markup=plugin_menu())
+    await callback.answer()
