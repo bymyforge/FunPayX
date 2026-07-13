@@ -2,6 +2,9 @@ import importlib.util
 import sys
 import json
 from pathlib import Path
+from aiogram import Router as AioRouter
+from fpx import Router as FpxRouter
+from .bot_manager import DpManager, BotManager
 
 
 plugins_dir = Path('plugins')
@@ -31,4 +34,9 @@ def load_plugins(fp):
                         sys.modules[module_name] = module
                         spec.loader.exec_module(module)
                         plugin_router = getattr(module, router_var_name)
-                        fp.router.include_router(plugin_router)
+                        if isinstance(plugin_router, FpxRouter):
+                            fp.router.include_router(plugin_router)
+                        elif isinstance(plugin_router, AioRouter):
+                            dp = DpManager.get()
+                            dp.include_router(plugin_router)
+        print('Все плагины успешно инициализированы')

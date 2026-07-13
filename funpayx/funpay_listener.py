@@ -21,10 +21,10 @@ async def funpaymain():
     @fp.router.on_startup()
     async def answer_for_start():
         logging.info('Слушатель funpay запущен')
+    load_plugins(fp)
     fp.router.include_router(msg_router)
     fp.router.include_router(order_router)
     fp.router.include_router(review_router)
-    load_plugins(fp)
     try:
         event = EventLogic()
         asyncio.create_task(event.back_task_manager())

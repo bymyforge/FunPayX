@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher, Router
 from config import BOT_TOKEN
 from client.middlewares.db_session import DbSessionMiddleware
 from core.database.engine import Session, init_db
-from utils.bot_manager import BotManager
+from utils.bot_manager import BotManager, DpManager
 from utils.config_manager import config_manager
 
 from client.routers.error import router as error_router
@@ -23,7 +23,8 @@ async def error_handler(event: types.ErrorEvent):
 async def botmain():
     BotManager.init(BOT_TOKEN)
     bot = BotManager.get()
-    dp = Dispatcher()
+    DpManager.init()
+    dp = DpManager.get()
     await init_db()
     await config_manager.load_config()
     dp.update.middleware.register(DbSessionMiddleware(Session))
