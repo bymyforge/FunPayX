@@ -10,8 +10,22 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
-def back_to_plugin_menu() -> InlineKeyboardMarkup:
+def plugin_menu() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(
+            text='Настройки',
+            callback_data=f'plugin:settings:{id}',
+            style='primary'
+        )
+    )
+    builder.row(
+        InlineKeyboardButton(
+            text='Команды',
+            callback_data=f'plugin:commands:1',
+            style='primary'
+        )
+    )
     builder.row(
         InlineKeyboardButton(
             text='Назад',
@@ -23,7 +37,8 @@ def back_to_plugin_menu() -> InlineKeyboardMarkup:
 
 plugin_data = {
     "routers": [
-        "main.router"
+        "main.router",
+        "client.router"
     ],
     "manifest": {
         "title": "TemplatePlugin",
@@ -38,6 +53,15 @@ plugin_data = {
 }
 
 main_py_code = ('''
+from fpx import Router
+
+
+router = Router()
+
+# ты можешь продолжить создавать роутеры в других файлах, или оставить только в этом
+''')
+
+client_py_code = ('''
 import os
 import json
 from aiogram import Router, F, types
@@ -46,8 +70,22 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
-def back_to_plugin_menu() -> InlineKeyboardMarkup:
+def plugin_menu() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(
+            text='Настройки',
+            callback_data=f'plugin:settings:{id}',
+            style='primary'
+        )
+    )
+    builder.row(
+        InlineKeyboardButton(
+            text='Команды',
+            callback_data=f'plugin:commands:1',
+            style='primary'
+        )
+    )
     builder.row(
         InlineKeyboardButton(
             text='Назад',
@@ -68,15 +106,40 @@ manifest = config['manifest']
 
 router = Router()
 
+def back_to_plugin() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(
+            text='Назад',
+            callback_data=f'plugin_{id}',
+            style='danger'
+        )
+    )
+    return builder.as_markup()
+
 credits_str = ", ".join(manifest.get("credits", []))
 @router.callback_query(F.data == f'plugin_{id}')
+async def plugin_start_handler(callback):
+    await callback.message.edit_text(
+        f'Название: {manifest['title']}\\n'
+        f'Описание: {manifest['description']}\\n'
+        f'Версия: v{manifest['version']}\\n'
+        f'Контакты: {credits_str}',
+        reply_markup=plugin_menu()
+    )
+
+@router.callback_query(F.data == f'plugin:settings:{id}')
+async def plugin_settings(callback):
+    await callback.message.edit_text(
+        'Раздел настроек плагина. Если требуется, можно заполнить или удалить. По дефолту текст на 60 строке',
+        reply_markup=back_to_plugin()
+    )
+
+@router.callback_query(F.data == f'plugin:commands:{id}')
 async def dynamic_handler(callback):
     await callback.message.edit_text(
-        f'Название: {manifest['title']}\n'
-        f'Описание: {manifest['description']}\n'
-        f'Версия: v{manifest['version']}\n'
-        f'Контакты: {credits_str}',
-        reply_markup=back_to_plugin_menu()
+        'Раздел списка команд плагина. Если требуется, можно заполнить или удалить. По дефолту текст на 66 строке',
+        reply_markup=back_to_plugin()
     )
 '''
 )
@@ -86,6 +149,16 @@ plugin_callback_list = []
 router = AioRouter()
 
 def load_router(router, manifest, id):
+    def back_to_plugin() -> InlineKeyboardMarkup:
+        builder = InlineKeyboardBuilder()
+        builder.row(
+            InlineKeyboardButton(
+                text='Назад',
+                callback_data=f'plugin_{id}',
+                style='danger'
+            )
+        )
+        return builder.as_markup()
     credits_str = ", ".join(manifest.get("credits", []))
     plugin_callback_list.append({'id': id, 'title': manifest['title']})
     async def dynamic_handler(callback):
@@ -112,6 +185,10 @@ def load_plugins(fp):
                 if not main_file.exists():
                     with open(main_file, "w", encoding="utf-8") as f:
                         f.write(main_py_code)
+                client_file = p_fol / 'client.py'
+                if not client_file.exists():
+                    with open(client_file, "w", encoding="utf-8") as f:
+                        f.write(client_py_code)
                 config_file = p_fol / 'plugin.json'
                 if not config_file.exists():
                     with open(config_file, "w", encoding="utf-8") as f:
