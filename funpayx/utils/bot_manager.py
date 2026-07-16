@@ -1,11 +1,13 @@
 from aiogram import Bot, Dispatcher
+from aiogram.client.session.aiohttp import AiohttpSession
 
 class BotManager:
     _instance: Bot | None = None
 
     @classmethod
-    def init(cls, token: str):
-        cls._instance = Bot(token=token)
+    def init(cls, token: str, proxy: str | None = None):
+        session = AiohttpSession(proxy=proxy) if proxy else None
+        cls._instance = Bot(token=token, session=session)
 
     @classmethod
     def get(cls) -> Bot:

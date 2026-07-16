@@ -10,10 +10,11 @@ from fpworker.routers.review import router as review_router
 from utils.funpay_manager import FunPayManager
 from utils.plugin_manager import load_plugins
 from core.logic.events import EventLogic
+from config import FUNPAY_PROXY
 
 
 async def funpaymain():
-    FunPayManager.init(GKEY, GSEAL)
+    FunPayManager.init(GKEY, GSEAL, FUNPAY_PROXY)
     fp = FunPayManager.get()
     from fpworker.di_list import get_db
     from core.logic.chat import ChatLogic
