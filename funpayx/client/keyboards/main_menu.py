@@ -66,6 +66,13 @@ def plugin_menu() -> InlineKeyboardMarkup:
         )
     builder.row(
         InlineKeyboardButton(
+            text='Маркетплейс',
+            callback_data='plugins:page:0',
+            style='success'
+        )
+    )
+    builder.row(
+        InlineKeyboardButton(
             text='Добавить плагин',
             callback_data='plugins:add',
             style='primary'

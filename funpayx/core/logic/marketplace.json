@@ -1,0 +1,12 @@
+{
+  "plugins": [
+    {
+      "id": "test_plugin",
+      "repo": "funpayx/fpx",
+      "commit": "e0dd7ab56457141f0acc83bdcdc520f5549a3f1c",
+      "path": "fpx",
+      "title": "Пример плагина",
+      "verified_by": "@sanyalca"
+    }
+  ]
+}

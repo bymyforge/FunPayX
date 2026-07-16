@@ -7,6 +7,8 @@ from aiogram.fsm.state import State, StatesGroup
 
 from client.keyboards.main_menu import back_to_main_menu
 from utils.bot_manager import BotManager
+from core.logic.plugins import PluginManager
+from client.keyboards.plugins_menu import plugin_marketplace_menu, selected_plugin_menu
 
 
 class PluginState(StatesGroup):
@@ -42,3 +44,39 @@ async def plugin_archive_adding(message: types.Message):
     except zipfile.BadZipFile:
         return await message.answer('⚠️ Файл повреждён или это не zip.')
     await message.answer('✅ Плагин установлен. Перезапусти бота командой /restart, чтобы он подгрузился.')
+
+@router.callback_query(F.data.startswith('plugins:page:'))
+async def get_plugins_market(callback: types.CallbackQuery):
+    plugin_manager = PluginManager()
+    page = callback.data.split(':')[-1]
+    market = plugin_manager.get_marketplace()
+    await callback.message.edit_text(f'Выбери нужный плагин', reply_markup=plugin_marketplace_menu(market, page))
+    await callback.answer()
+
+@router.callback_query(F.data.startswith('plugin:sel:'))
+async def select_plugin(callback: types.CallbackQuery):
+    plugin_id = callback.data.split(':')[-1]
+    plugin_manager = PluginManager()
+    plugin = plugin_manager.find_plugin_by_id(plugin_id)
+    await callback.message.edit_text(
+        text = f"""
+<b>{plugin['title']}</b>
+
+🆔 <b>ID:</b> <code>{plugin['id']}</code>
+👤 <b>Автор:</b> <a href="https://github.com/{plugin['repo'].split('/')[0]}">{plugin['repo'].split('/')[0]}</a>
+📦 <b>Репозиторий:</b> <a href="https://github.com/{plugin['repo']}">{plugin['repo']}</a>
+🔖 <b>Коммит:</b> <code>{plugin['commit'][:7]}</code>
+✅ <b>Проверил:</b> {plugin['verified_by']}
+            """,
+        parse_mode="HTML",
+        disable_web_page_preview=True,
+        reply_markup=selected_plugin_menu(plugin)
+    )
+
+@router.callback_query(F.data.startswith('install:'))
+async def install_plugin(callback: types.CallbackQuery):
+    plugin_id = callback.data.split(':')[-1]
+    plugin_manager = PluginManager()
+    plugin = plugin_manager.find_plugin_by_id(plugin_id)
+    await plugin_manager.install_from_marketplace(plugin)
+    await callback.message.edit_text('Успешно установлено. Введи /restart чтобы активировать')
