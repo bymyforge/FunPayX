@@ -1,6 +1,8 @@
 from aiogram import F, types, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from core.logic.events import EventLogic
 
@@ -30,6 +32,20 @@ async def answering_message_end(message: types.Message, state: FSMContext):
     return await message.answer('Успешно отправлено')
 
 @router.callback_query(F.data.startswith('order:ref:'))
+async def refund_order(callback: types.CallbackQuery):
+    order_id = callback.data.split(':')[-1]
+    buider = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(
+            text='Я согласен',
+            callback_data=f'order:ref:conf:{order_id}',
+            style='success'
+        )
+    )
+    kb = buider.as_markup()
+    return callback.message.edit_text('Вы уверены?', reply_markup=kb)
+
+@router.callback_query(F.data.startswith('order:ref:conf:'))
 async def refund_order(callback: types.CallbackQuery):
     order_id = callback.data.split(':')[-1]
     event = EventLogic()
